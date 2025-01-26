@@ -19,7 +19,6 @@ pub type! AggregateError Array[Error]
 type Resolver
 impl Resolver {
   future[A](Self[A]) -> T[A]
-  is_completed[A](Self[A]) -> Bool
   reject[A](Self[A], Error) -> Unit
   resolve[A](Self[A], A) -> Unit
   try_complete[A](Self[A], () -> A!) -> Bool
@@ -30,9 +29,9 @@ impl T {
   await[A](Self[A]) -> A!
   bind[A, B](Self[A], (A) -> Self[B]) -> Self[B]
   finally[A](Self[A], () -> Unit) -> Self[A]
+  get[A](Self[A]) -> Result[A, Error]?
   on_failure[A](Self[A], (Error) -> Unit) -> Unit
   on_success[A](Self[A], (A) -> Unit) -> Unit
-  tap[A](Self[A], (A) -> Self[Unit]) -> Self[A]
   zip[A, B](Self[A], Self[B]) -> Self[(A, B)]
   zip_with[A, B, C](Self[A], Self[B], (A, B) -> C) -> Self[C]
 }

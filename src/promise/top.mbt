@@ -32,18 +32,17 @@ pub fn reject[A](err : Error) -> T[A] {
 }
 
 ///|
-pub fn is_completed[A](self : Resolver[A]) -> Bool {
+pub fn get[A](self : T[A]) -> Result[A, Error]? {
   match self.state {
-    Fulfilled(_) => true
-    _ => false
+    Fulfilled(result) => Some(Ok(result))
+    Rejected(error) => Some(Err(error))
+    _ => None
   }
 }
 
 ///|
 pub fn try_complete[A](self : Resolver[A], result : () -> A!) -> Bool {
-  if self.is_completed() {
-    return false
-  }
+  guard let Pending(_) = self.state else { _ => return false }
   try {
     result!()
   } catch {
@@ -140,34 +139,6 @@ pub fn finally[A](self : T[A], callback : () -> Unit) -> T[A] {
       })
   }
   self
-}
-
-test {
-  let a : Resolver[Int] = make()
-  let b : Resolver[Int] = make()
-  a
-  .future()
-  .bind(fn(i) {
-    println("a is done with \{i}")
-    resolve(())
-  })
-  |> ignore
-  b
-  .future()
-  .bind(fn(i) {
-    println("b is done with \{i}")
-    resolve(())
-  })
-  |> ignore
-  a.try_complete(fn() { 1 }) |> ignore
-  println("finishing a")
-  b.try_complete(fn() { 2 }) |> ignore
-  println("finishing b")
-}
-
-///|
-pub fn tap[A](self : T[A], callback : (A) -> T[Unit]) -> T[A] {
-  self.bind(fn(a) { callback(a).bind(fn(_unit) { resolve(a) }) })
 }
 
 ///|
