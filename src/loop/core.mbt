@@ -1,5 +1,5 @@
 ///|
-pub fn T::create[A : Sync]() -> T[A] {
+pub fn new[A : Sync]() -> T[A] {
   { handlers: Map::new() }
 }
 

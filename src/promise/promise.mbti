@@ -1,4 +1,4 @@
-package username/hello/promise
+package peter-jerry-ye/async/promise
 
 // Values
 fn all[A](Array[T[A]]) -> T[Array[A]]

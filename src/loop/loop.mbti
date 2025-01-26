@@ -1,6 +1,8 @@
-package username/hello/loop
+package peter-jerry-ye/async/loop
 
 // Values
+fn new[A : Sync]() -> T[A]
+
 fn reset(() -> Unit) -> Unit
 
 // Types and methods
@@ -14,7 +16,6 @@ impl Handler {
 
 type T
 impl T {
-  create[A : Sync]() -> Self[A]
   on_ready[A : Sync](Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
   run[A : Sync](Self[A]) -> Unit
   run_until[A : Sync](Self[A], () -> Bool) -> Unit
