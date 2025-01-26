@@ -3,8 +3,6 @@ package peter-jerry-ye/async/loop
 // Values
 fn new[A : Sync]() -> T[A]
 
-fn reset(() -> Unit) -> Unit
-
 // Types and methods
 type Handler
 impl Handler {
