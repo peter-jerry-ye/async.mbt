@@ -1,0 +1,30 @@
+package username/hello/loop
+
+// Values
+fn reset(() -> Unit) -> Unit
+
+// Types and methods
+type Handler
+impl Handler {
+  is_stopped(Self) -> Bool
+  make(action~ : (Self) -> Unit, stop_action~ : () -> Unit = ..) -> Self
+  start(Self) -> Unit
+  stop(Self) -> Unit
+}
+
+type T
+impl T {
+  create[A : Sync]() -> Self[A]
+  on_ready[A : Sync](Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
+  run[A : Sync](Self[A]) -> Unit
+  run_until[A : Sync](Self[A], () -> Bool) -> Unit
+  sync[A : Sync](Self[A], A) -> Unit
+}
+
+// Type aliases
+
+// Traits
+pub(open) trait Sync {
+  sync(Array[Self]) -> FixedArray[UInt]
+}
+

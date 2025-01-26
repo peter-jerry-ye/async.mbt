@@ -1,0 +1,43 @@
+package username/hello/promise
+
+// Values
+fn all[A](Array[T[A]]) -> T[Array[A]]
+
+fn any[A](Array[T[A]]) -> T[A]
+
+fn make[A]() -> Resolver[A]
+
+fn reject[A](Error) -> T[A]
+
+fn resolve[A](A) -> T[A]
+
+fn spawn[A](((() -> Unit) -> Unit) -> A!) -> T[A]
+
+// Types and methods
+pub type! AggregateError Array[Error]
+
+type Resolver
+impl Resolver {
+  future[A](Self[A]) -> T[A]
+  is_completed[A](Self[A]) -> Bool
+  reject[A](Self[A], Error) -> Unit
+  resolve[A](Self[A], A) -> Unit
+  try_complete[A](Self[A], () -> A!) -> Bool
+}
+
+type T
+impl T {
+  await[A](Self[A]) -> A!
+  bind[A, B](Self[A], (A) -> Self[B]) -> Self[B]
+  finally[A](Self[A], () -> Unit) -> Self[A]
+  on_failure[A](Self[A], (Error) -> Unit) -> Unit
+  on_success[A](Self[A], (A) -> Unit) -> Unit
+  tap[A](Self[A], (A) -> Self[Unit]) -> Self[A]
+  zip[A, B](Self[A], Self[B]) -> Self[(A, B)]
+  zip_with[A, B, C](Self[A], Self[B], (A, B) -> C) -> Self[C]
+}
+
+// Type aliases
+
+// Traits
+
