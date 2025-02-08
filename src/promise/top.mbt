@@ -193,15 +193,16 @@ pub fn zip_with[A, B, C](self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
 }
 
 ///|
-async fn shift[A](f : ((A) -> Unit) -> Unit) -> A = "%async.suspend"
+async fn shift[A](f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A! = "%async.suspend"
 
 ///|
 fn reset(f : async () -> Unit) -> Unit = "%async.run"
 
 ///|
 pub async fn await[A](self : T[A]) -> A! {
-  shift!!(fn(resume : (A) -> Unit) -> Unit {
-    self.bind(fn(a) { resolve(resume(a)) }) |> ignore
+  shift!!(fn(resume : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
+    self.on_success(resume)
+    self.on_failure(reject)
   })
 }
 
