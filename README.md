@@ -24,3 +24,9 @@ It provides an event loop `T[A]`, where `A` should fulfill a trait `Sync` that c
 The event loop creates a `Handler` with `on_ready` that takes a callback, which will be executed every time the corresponding `Sync` is ready. The user should call the `handler.stop` from within the callbacks to terminate the `Handler`.
 
 The event loop can `run_until` a condition is met, or `run` until all the handlers are emptied.
+
+## TODO
+
+- Adjust APIs based on feedbacks
+- Add documents
+- Add tests
