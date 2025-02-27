@@ -5,6 +5,6 @@
   "repository": "https://github.com/peter-jerry-ye/async.mbt",
   "license": "Apache-2.0",
   "keywords": [],
-  "description": "",
+  "description": "Promise and Event Loop",
   "source": "src"
 }
