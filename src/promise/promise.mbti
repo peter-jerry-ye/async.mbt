@@ -16,7 +16,7 @@ fn spawn[A](((() -> Unit) -> Unit) -> A!) -> T[A]
 // Types and methods
 pub type! AggregateError Array[Error]
 
-type Resolver
+type Resolver[A]
 impl Resolver {
   future[A](Self[A]) -> T[A]
   reject[A](Self[A], Error) -> Unit
@@ -24,7 +24,7 @@ impl Resolver {
   try_complete[A](Self[A], () -> A!) -> Bool
 }
 
-type T
+type T[A]
 impl T {
   await[A](Self[A]) -> A!
   bind[A, B](Self[A], (A) -> Self[B]) -> Self[B]

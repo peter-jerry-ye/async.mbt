@@ -12,7 +12,7 @@ impl Handler {
   stop(Self) -> Unit
 }
 
-type T
+type T[A]
 impl T {
   on_ready[A : Sync](Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
   run[A : Sync](Self[A]) -> Unit
