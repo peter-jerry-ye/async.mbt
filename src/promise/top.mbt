@@ -56,7 +56,7 @@ pub fn get[A](self : T[A]) -> Result[A, Error]? {
 
 ///|
 pub fn try_complete[A](self : Resolver[A], result : () -> A!) -> Bool {
-  guard let Pending(_) = self.state else { _ => return false }
+  guard self.state is Pending(_) else { false }
   try {
     result!()
   } catch {
