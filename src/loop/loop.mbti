@@ -1,7 +1,15 @@
-package peter-jerry-ye/async/loop
+package "peter-jerry-ye/async/loop"
 
 // Values
 fn new[A : Sync]() -> T[A]
+
+fn on_ready[A : Sync](T[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
+
+fn run[A : Sync](T[A]) -> Unit
+
+fn run_until[A : Sync](T[A], () -> Bool) -> Unit
+
+fn sync[A : Sync](T[A], A) -> Unit
 
 // Types and methods
 type Handler

@@ -4,6 +4,8 @@ This library provides
 
 - `promise`: a normal promise library
 - `loop`: an event loop implementation
+- `channel`: a channel library
+- `stream`: an abstraction over i/o
 
 ## Promise
 
@@ -24,6 +26,21 @@ It provides an event loop `T[A]`, where `A` should fulfill a trait `Sync` that c
 The event loop creates a `Handler` with `on_ready` that takes a callback, which will be executed every time the corresponding `Sync` is ready. The user should call the `handler.stop` from within the callbacks to terminate the `Handler`.
 
 The event loop can `run_until` a condition is met, or `run` until all the handlers are emptied.
+
+## Channel
+
+It provides a channel `T[A]`, where `A` could be anything.
+
+The `T[A]` has async operations such as `pop` and `push`. More APIs are to be implemented based on feedback.
+
+## Stream
+
+It defines a few traits : 
+- basic traits: `Closable` `Flushable`
+- i/o based on bytes: `InputStream` `OutputStream`
+- i/o based on chars: `Reader` `Writer`
+
+It also provides some simple function to convert, for example, an `InputStream` to a `Reader`, and a `Reader` to a `BufferedReader`. Users have Java background may be familiar with this hierarchy.
 
 ## TODO
 

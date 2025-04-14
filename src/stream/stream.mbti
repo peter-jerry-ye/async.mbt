@@ -1,0 +1,61 @@
+package "peter-jerry-ye/async/stream"
+
+import(
+  "peter-jerry-ye/async/promise"
+  "tonyfettes/encoding"
+)
+
+// Values
+fn buffered_reader(&Reader) -> BufferedReader
+
+fn input_stream_reader[T : InputStream](T, encoding~ : @encoding.Encoding = ..) -> &Reader
+
+fn output_stream_writer[T : OutputStream](T, encoding~ : @encoding.Encoding = ..) -> &Writer
+
+// Types and methods
+pub(all) type AsyncIterable[T] () -> T!
+
+pub struct BufferedReader {
+  stream : &Reader
+  mut buffer : String
+  mut offset : UInt
+  mut len : UInt
+}
+impl BufferedReader {
+  read_line(Self) -> @promise.T[String]
+}
+impl Closable for BufferedReader
+impl Reader for BufferedReader
+
+// Type aliases
+
+// Traits
+pub(open) trait Closable {
+  closed(Self) -> Bool
+  close(Self) -> Unit
+}
+
+pub(open) trait Flushable {
+  flush(Self) -> @promise.T[Unit]
+}
+
+pub(open) trait InputStream : Closable {
+  readable(Self) -> Bool
+  read(Self, UInt64) -> @promise.T[Bytes]
+}
+
+pub(open) trait OutputStream : Closable + Flushable {
+  writable(Self) -> Bool
+  write(Self, Bytes) -> @promise.T[Unit]
+}
+
+pub(open) trait Reader : Closable {
+  readable(Self) -> Bool
+  read(Self, UInt64) -> @promise.T[String]
+}
+
+pub(open) trait Writer : Closable + Flushable {
+  writable(Self) -> Bool
+  write(Self, String) -> @promise.T[Unit]
+}
+

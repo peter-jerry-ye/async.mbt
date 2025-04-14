@@ -1,17 +1,37 @@
-package peter-jerry-ye/async/promise
+package "peter-jerry-ye/async/promise"
 
 // Values
 fn all[A](Array[T[A]]) -> T[Array[A]]
 
 fn any[A](Array[T[A]]) -> T[A]
 
+fn await[A](T[A]) -> A!
+
+fn bind[A, B](T[A], (A) -> T[B]) -> T[B]
+
+fn finally[A](T[A], () -> Unit) -> T[A]
+
+fn future[A](Resolver[A]) -> T[A]
+
+fn get[A](T[A]) -> Result[A, Error]?
+
 fn make[A]() -> Resolver[A]
+
+fn on_failure[A](T[A], (Error) -> Unit) -> Unit
+
+fn on_success[A](T[A], (A) -> Unit) -> Unit
 
 fn reject[A](Error) -> T[A]
 
 fn resolve[A](A) -> T[A]
 
 fn spawn[A](((() -> Unit) -> Unit) -> A!) -> T[A]
+
+fn try_complete[A](Resolver[A], () -> A!) -> Bool
+
+fn zip[A, B](T[A], T[B]) -> T[(A, B)]
+
+fn zip_with[A, B, C](T[A], T[B], (A, B) -> C) -> T[C]
 
 // Types and methods
 pub type! AggregateError Array[Error]
