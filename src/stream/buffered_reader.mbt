@@ -18,11 +18,12 @@ pub struct BufferedReader {
   mut buffer : String
   mut offset : UInt
   mut len : UInt
+  mut error : Error?
 }
 
 ///| Create a buffered reader from a reader
 pub fn buffered_reader(stream : &Reader) -> BufferedReader {
-  { stream, buffer: "", offset: 0, len: 0 }
+  { stream, buffer: "", offset: 0, len: 0, error: None }
 }
 
 ///|
@@ -46,6 +47,14 @@ pub impl Reader for BufferedReader with readable(self) {
 ///|
 pub impl Reader for BufferedReader with read(self, size) {
   @promise.spawn(async fn(_defer) {
+    // if there were error not thrown, throw it
+    if self.error is Some(error) {
+      self.error = None
+      raise error
+    }
+    if self.closed() {
+      fail!("Closed")
+    }
     // Only handles requests within uint
     let size = size.to_uint()
     let builder = StringBuilder::new()
@@ -68,9 +77,13 @@ pub impl Reader for BufferedReader with read(self, size) {
       self.len = 0
     }
     if self.stream.readable() {
-      builder.write_string(
-        self.stream.read((size - self.len).to_uint64()).await!!(),
-      )
+      try {
+        builder.write_string(
+          self.stream.read((size - self.len).to_uint64()).await!(),
+        )
+      } catch {
+        e => if builder.is_empty() { raise e } else { self.error = Some(e) }
+      }
     }
     builder.to_string()
   })
@@ -79,6 +92,10 @@ pub impl Reader for BufferedReader with read(self, size) {
 ///|
 pub fn BufferedReader::read_line(self : BufferedReader) -> @promise.T[String] {
   @promise.spawn(async fn(_defer) {
+    if self.error is Some(e) {
+      self.error = None
+      raise e
+    }
     let result = StringBuilder::new()
     if split_line(self.buffer, self.offset) is Some((line, rest)) {
       self.buffer = rest
@@ -93,7 +110,17 @@ pub fn BufferedReader::read_line(self : BufferedReader) -> @promise.T[String] {
       )
     }
     while self.readable() {
-      let next_str = self.stream.read(1024).await!!()
+      let next_str = try {
+        self.stream.read(1024).await!()
+      } catch {
+        e =>
+          if result.is_empty() {
+            raise e
+          } else {
+            self.error = Some(e)
+            break
+          }
+      }
       if split_line(next_str, 0) is Some((line, rest)) {
         result.write_string(line)
         self.buffer = rest
@@ -162,4 +189,23 @@ test "split line" {
   inspect!(line, content="")
   inspect!(rest, content="Another line.")
   inspect!(split_line(str, 31), content="None")
+}
+
+///|
+test "read line" {
+  @promise.spawn(async fn(_defer) {
+    try {
+      let str = "Hello, world!\nThis is a test.\r\nAnother line."
+      let reader = buffered_reader(string_reader(str))
+      inspect!(reader.read_line().await!(), content="Hello, world!")
+      inspect!(reader.read_line().await!(), content="This is a test.")
+      inspect!(reader.read_line().await!(), content="Another line.")
+    } catch {
+      e => {
+        println(e)
+        panic()
+      }
+    }
+  })
+  |> ignore
 }
