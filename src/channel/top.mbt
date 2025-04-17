@@ -38,7 +38,7 @@ pub async fn push[A](self : T[A], value : A) -> Unit {
       None => self.buffer.push(value)
     }
   } else {
-    shift!!(fn(k) { self.producers.push((value, k)) })
+    shift!(fn(k) { self.producers.push((value, k)) })
   }
 }
 
@@ -55,7 +55,7 @@ pub async fn pop[A](self : T[A]) -> A {
       }
       value
     }
-    None => shift!!(fn(k) { self.consumers.push(k) })
+    None => shift!(fn(k) { self.consumers.push(k) })
   }
 }
 

@@ -80,7 +80,7 @@ pub fn on_ready[A : Sync](
 
 ///|
 pub async fn sync[A : Sync](self : T[A], subscribe : A) -> Unit {
-  shift!!(fn(resume) {
+  shift!(fn(resume) {
     self.on_ready(subscribe, fn(handler) {
       handler.stop()
       resume(())

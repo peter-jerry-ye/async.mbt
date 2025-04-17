@@ -214,7 +214,7 @@ fn reset(f : async () -> Unit) -> Unit = "%async.run"
 
 ///|
 pub async fn await[A](self : T[A]) -> A! {
-  shift!!(fn(resume : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
+  shift!(fn(resume : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
     self.on_success(resume)
     self.on_failure(reject)
   })
@@ -234,7 +234,7 @@ pub fn spawn[A](cb : async ((() -> Unit) -> Unit) -> A!) -> T[A] {
   |> ignore
   reset(async fn() {
     try {
-      cb!!(fn(finally) { defer.push(finally) })
+      cb!(fn(finally) { defer.push(finally) })
     } catch {
       e => promise.reject(e)
     } else {
