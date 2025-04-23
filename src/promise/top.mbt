@@ -214,9 +214,17 @@ fn reset(f : async () -> Unit) -> Unit = "%async.run"
 
 ///|
 pub async fn await[A](self : T[A]) -> A! {
-  shift!(fn(resume : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
-    self.on_success(resume)
-    self.on_failure(reject)
+  shift!(fn(resolve : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
+    match self.state {
+      Fulfilled(a) => resolve(a)
+      Rejected(err) => reject(err)
+      Pending(handlers) =>
+        handlers.push(fn {
+          Fulfilled(a) => resolve(a)
+          Rejected(err) => reject(err)
+          _ => ()
+        })
+    }
   })
 }
 
