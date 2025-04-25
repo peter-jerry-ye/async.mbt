@@ -1,6 +1,6 @@
 {
   "name": "peter-jerry-ye/async",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "deps": {
     "tonyfettes/encoding": "0.1.0"
   },

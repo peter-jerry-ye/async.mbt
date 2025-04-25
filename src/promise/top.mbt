@@ -210,7 +210,7 @@ pub fn zip_with[A, B, C](self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
 async fn shift[A](f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A! = "%async.suspend"
 
 ///|
-fn reset(f : async () -> Unit) -> Unit = "%async.run"
+fn reset(f : () -> Unit!Async) -> Unit = "%async.run"
 
 ///|
 pub async fn await[A](self : T[A]) -> A! {
@@ -229,7 +229,7 @@ pub async fn await[A](self : T[A]) -> A! {
 }
 
 ///|
-pub fn spawn[A](cb : async ((() -> Unit) -> Unit) -> A!) -> T[A] {
+pub fn spawn[A](cb : ((() -> Unit) -> Unit) -> A!Error + Async) -> T[A] {
   let promise = make()
   let defer : Array[() -> Unit] = []
   promise

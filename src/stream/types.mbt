@@ -60,4 +60,4 @@ pub(open) trait Writer: Closable + Flushable {
 }
 
 ///|
-pub(all) type AsyncIterable[T] async () -> T!
+pub(all) type AsyncIterable[T] () -> T!Error + Async
