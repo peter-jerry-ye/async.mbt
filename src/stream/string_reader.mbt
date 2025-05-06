@@ -69,7 +69,7 @@ test "string reader" {
       inspect!(
         try {
           reader.read(10).await!()
-        } catch {
+        } catch! {
           Failure(_) => "fail"
         },
         content="fail",

@@ -35,7 +35,7 @@ impl[T : OutputStream] Writer for OutputStreamWriter[T] with writable(self) {
 
 ///|
 impl[T : OutputStream] Writer for OutputStreamWriter[T] with write(self, string) {
-  self.stream.write(@encoding.encode(self.encoding, string))
+  self.stream.write(@encoding.encode(string, encoding=self.encoding))
 }
 
 ///|
