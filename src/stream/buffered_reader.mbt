@@ -53,7 +53,7 @@ pub impl Reader for BufferedReader with read(self, size) {
       raise error
     }
     if self.closed() {
-      fail!("Closed")
+      fail("Closed")
     }
     // Only handles requests within uint
     let size = size.to_uint()
@@ -77,11 +77,9 @@ pub impl Reader for BufferedReader with read(self, size) {
       self.len = 0
     }
     if self.stream.readable() {
-      try {
-        builder.write_string(
-          self.stream.read((size - self.len).to_uint64()).await!(),
-        )
-      } catch {
+      builder.write_string(
+        self.stream.read((size - self.len).to_uint64()).await(),
+      ) catch {
         e => if builder.is_empty() { raise e } else { self.error = Some(e) }
       }
     }
@@ -110,9 +108,7 @@ pub fn BufferedReader::read_line(self : BufferedReader) -> @promise.T[String] {
       )
     }
     while self.readable() {
-      let next_str = try {
-        self.stream.read(1024).await!()
-      } catch {
+      let next_str = self.stream.read(1024).await() catch {
         e =>
           if result.is_empty() {
             raise e
@@ -180,15 +176,15 @@ fn split_line(str : String, start_offset : UInt) -> (String, String)? {
 test "split line" {
   let str = "Hello, world!\nThis is a test.\r\nAnother line."
   let (line, rest) = split_line(str, 0).unwrap()
-  inspect!(line, content="Hello, world!")
-  inspect!(rest, content="This is a test.\r\nAnother line.")
+  inspect(line, content="Hello, world!")
+  inspect(rest, content="This is a test.\r\nAnother line.")
   let (line, rest) = split_line(str, 14).unwrap()
-  inspect!(line, content="This is a test.")
-  inspect!(rest, content="Another line.")
+  inspect(line, content="This is a test.")
+  inspect(rest, content="Another line.")
   let (line, rest) = split_line(str, 30).unwrap()
-  inspect!(line, content="")
-  inspect!(rest, content="Another line.")
-  inspect!(split_line(str, 31), content="None")
+  inspect(line, content="")
+  inspect(rest, content="Another line.")
+  inspect(split_line(str, 31), content="None")
 }
 
 ///|
@@ -197,9 +193,9 @@ test "read line" {
     try {
       let str = "Hello, world!\nThis is a test.\r\nAnother line."
       let reader = buffered_reader(string_reader(str))
-      inspect!(reader.read_line().await!(), content="Hello, world!")
-      inspect!(reader.read_line().await!(), content="This is a test.")
-      inspect!(reader.read_line().await!(), content="Another line.")
+      inspect(reader.read_line().await(), content="Hello, world!")
+      inspect(reader.read_line().await(), content="This is a test.")
+      inspect(reader.read_line().await(), content="Another line.")
     } catch {
       e => {
         println(e)

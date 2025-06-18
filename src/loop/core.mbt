@@ -13,12 +13,12 @@
 // limitations under the License.
 
 ///|
-pub fn new[A : Sync]() -> T[A] {
+pub fn[A : Sync] new() -> T[A] {
   { handlers: Map::new() }
 }
 
 ///|
-fn add_handler[A : Sync](
+fn[A : Sync] add_handler(
   self : T[A],
   id : UInt64,
   subscribe : A,
@@ -28,12 +28,12 @@ fn add_handler[A : Sync](
 }
 
 ///|
-fn remove_handler[A](self : T[A], id : UInt64) -> Unit {
+fn[A] remove_handler(self : T[A], id : UInt64) -> Unit {
   self.handlers.remove(id)
 }
 
 ///|
-fn iter[A : Sync](engine : T[A]) -> Unit {
+fn[A : Sync] iter(engine : T[A]) -> Unit {
   let values = engine.handlers.values().collect()
   let wait = values.map(fn(pair) { pair.0 })
   let result = A::sync(wait)
@@ -57,7 +57,7 @@ fn make_io_handler(
 let counter : Ref[UInt64] = { val: 0UL }
 
 ///|
-pub fn on_ready[A : Sync](
+pub fn[A : Sync] on_ready(
   self : T[A],
   subscribe : A,
   action : (Handler) -> Unit,
@@ -79,23 +79,23 @@ pub fn on_ready[A : Sync](
 }
 
 ///|
-pub async fn sync[A : Sync](self : T[A], subscribe : A) -> Unit {
-  shift!(fn(resume) {
+pub async fn[A : Sync] sync(self : T[A], subscribe : A) -> Unit {
+  shift(fn(resume_) {
     self.on_ready(subscribe, fn(handler) {
       handler.stop()
-      resume(())
+      resume_(())
     })
   })
 }
 
 ///|
-pub fn run_until[A : Sync](self : T[A], done : () -> Bool) -> Unit {
+pub fn[A : Sync] run_until(self : T[A], done : () -> Bool) -> Unit {
   while not(done()) {
     iter(self)
   }
 }
 
 ///|
-pub fn run[A : Sync](self : T[A]) -> Unit {
-  run_until(self, fn() { self.handlers.is_empty() })
+pub fn[A : Sync] run(self : T[A]) -> Unit {
+  self.run_until(fn() { self.handlers.is_empty() })
 }

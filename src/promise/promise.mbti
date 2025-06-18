@@ -1,60 +1,36 @@
 package "peter-jerry-ye/async/promise"
 
 // Values
-fn all[A](Array[T[A]]) -> T[Array[A]]
+fn[A] all(Array[T[A]]) -> T[Array[A]]
 
-fn any[A](Array[T[A]]) -> T[A]
+fn[A] any(Array[T[A]]) -> T[A]
 
-fn await[A](T[A]) -> A!
+fn[A] make() -> Resolver[A]
 
-fn bind[A, B](T[A], (A) -> T[B]) -> T[B]
+fn[A] reject(Error) -> T[A]
 
-fn finally[A](T[A], () -> Unit) -> T[A]
+fn[A] resolve(A) -> T[A]
 
-fn future[A](Resolver[A]) -> T[A]
-
-fn get[A](T[A]) -> Result[A, Error]?
-
-fn make[A]() -> Resolver[A]
-
-fn on_failure[A](T[A], (Error) -> Unit) -> Unit
-
-fn on_success[A](T[A], (A) -> Unit) -> Unit
-
-fn reject[A](Error) -> T[A]
-
-fn resolve[A](A) -> T[A]
-
-fn spawn[A](((() -> Unit) -> Unit) -> A!) -> T[A]
-
-fn try_complete[A](Resolver[A], () -> A!) -> Bool
-
-fn zip[A, B](T[A], T[B]) -> T[(A, B)]
-
-fn zip_with[A, B, C](T[A], T[B], (A, B) -> C) -> T[C]
+fn[A] spawn(((() -> Unit) -> Unit) -> A raise) -> T[A]
 
 // Types and methods
-pub type! AggregateError Array[Error]
+pub suberror AggregateError Array[Error]
 
 type Resolver[A]
-impl Resolver {
-  future[A](Self[A]) -> T[A]
-  reject[A](Self[A], Error) -> Unit
-  resolve[A](Self[A], A) -> Unit
-  try_complete[A](Self[A], () -> A!) -> Bool
-}
+fn[A] Resolver::future(Self[A]) -> T[A]
+fn[A] Resolver::reject(Self[A], Error) -> Unit
+fn[A] Resolver::resolve(Self[A], A) -> Unit
+fn[A] Resolver::try_complete(Self[A], () -> A raise) -> Bool
 
 type T[A]
-impl T {
-  await[A](Self[A]) -> A!
-  bind[A, B](Self[A], (A) -> Self[B]) -> Self[B]
-  finally[A](Self[A], () -> Unit) -> Self[A]
-  get[A](Self[A]) -> Result[A, Error]?
-  on_failure[A](Self[A], (Error) -> Unit) -> Unit
-  on_success[A](Self[A], (A) -> Unit) -> Unit
-  zip[A, B](Self[A], Self[B]) -> Self[(A, B)]
-  zip_with[A, B, C](Self[A], Self[B], (A, B) -> C) -> Self[C]
-}
+async fn[A] T::await(Self[A]) -> A raise
+fn[A, B] T::bind(Self[A], (A) -> Self[B]) -> Self[B]
+fn[A] T::finally(Self[A], () -> Unit) -> Self[A]
+fn[A] T::get(Self[A]) -> Result[A, Error]?
+fn[A] T::on_failure(Self[A], (Error) -> Unit) -> Unit
+fn[A] T::on_success(Self[A], (A) -> Unit) -> Unit
+fn[A, B] T::zip(Self[A], Self[B]) -> Self[(A, B)]
+fn[A, B, C] T::zip_with(Self[A], Self[B], (A, B) -> C) -> Self[C]
 
 // Type aliases
 

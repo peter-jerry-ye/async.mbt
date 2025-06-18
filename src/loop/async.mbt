@@ -13,4 +13,4 @@
 // limitations under the License.
 
 ///|
-async fn shift[A](f : ((A) -> Unit) -> Unit) -> A = "%async.suspend"
+async fn[A] shift(f : ((A) -> Unit) -> Unit) -> A = "%async.suspend"

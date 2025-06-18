@@ -31,22 +31,22 @@ struct T[A] {
 type Resolver[A] T[A]
 
 ///|
-pub fn make[A]() -> Resolver[A] {
+pub fn[A] make() -> Resolver[A] {
   Resolver({ state: Pending([]) })
 }
 
 ///|
-pub fn resolve[A](a : A) -> T[A] {
+pub fn[A] resolve(a : A) -> T[A] {
   { state: Fulfilled(a) }
 }
 
 ///|
-pub fn reject[A](err : Error) -> T[A] {
+pub fn[A] reject(err : Error) -> T[A] {
   { state: Rejected(err) }
 }
 
 ///|
-pub fn get[A](self : T[A]) -> Result[A, Error]? {
+pub fn[A] get(self : T[A]) -> Result[A, Error]? {
   match self.state {
     Fulfilled(result) => Some(Ok(result))
     Rejected(error) => Some(Err(error))
@@ -55,11 +55,9 @@ pub fn get[A](self : T[A]) -> Result[A, Error]? {
 }
 
 ///|
-pub fn try_complete[A](self : Resolver[A], result : () -> A!) -> Bool {
+pub fn[A] try_complete(self : Resolver[A], result : () -> A raise) -> Bool {
   guard self.state is Pending(_) else { false }
-  try {
-    result!()
-  } catch {
+  try result() catch {
     err => self.fullfill_or_reject(Rejected(err))
   } else {
     result => self.fullfill_or_reject(Fulfilled(result))
@@ -68,22 +66,22 @@ pub fn try_complete[A](self : Resolver[A], result : () -> A!) -> Bool {
 }
 
 ///|
-pub fn Resolver::resolve[A](self : Resolver[A], result : A) -> Unit {
-  fullfill_or_reject(self, Fulfilled(result))
+pub fn[A] Resolver::resolve(self : Resolver[A], result : A) -> Unit {
+  self.fullfill_or_reject(Fulfilled(result))
 }
 
 ///|
-pub fn Resolver::reject[A](self : Resolver[A], err : Error) -> Unit {
-  fullfill_or_reject(self, Rejected(err))
+pub fn[A] Resolver::reject(self : Resolver[A], err : Error) -> Unit {
+  self.fullfill_or_reject(Rejected(err))
 }
 
 ///|
-fn fullfill_or_reject[A](self : Resolver[A], state : State[A]) -> Unit {
+fn[A] fullfill_or_reject(self : Resolver[A], state : State[A]) -> Unit {
   match self.state {
     Pending(handlers) => {
       self.state = state
       for handler in handlers {
-        (handler._)(state)
+        handler.inner()(state)
       }
     }
     _ => ()
@@ -91,44 +89,38 @@ fn fullfill_or_reject[A](self : Resolver[A], state : State[A]) -> Unit {
 }
 
 ///|
-pub fn future[A](self : Resolver[A]) -> T[A] {
-  self._
+pub fn[A] future(self : Resolver[A]) -> T[A] {
+  self.inner()
 }
 
 ///|
-pub fn on_success[A](self : T[A], callback : (A) -> Unit) -> Unit {
+pub fn[A] on_success(self : T[A], callback : (A) -> Unit) -> Unit {
   match self.state {
     Fulfilled(a) => callback(a)
     Rejected(_) => ()
     Pending(handlers) =>
-      handlers.push(fn {
-        Fulfilled(a) => callback(a)
-        _ => ()
-      })
+      handlers.push(state => if state is Fulfilled(a) { callback(a) })
   }
 }
 
 ///|
-pub fn on_failure[A](self : T[A], callback : (Error) -> Unit) -> Unit {
+pub fn[A] on_failure(self : T[A], callback : (Error) -> Unit) -> Unit {
   match self.state {
     Rejected(err) => callback(err)
     Fulfilled(_) => ()
     Pending(handlers) =>
-      handlers.push(fn {
-        Rejected(err) => callback(err)
-        _ => ()
-      })
+      handlers.push(state => if state is Rejected(err) { callback(err) })
   }
 }
 
 ///|
-pub fn bind[A, B](self : T[A], callback : (A) -> T[B]) -> T[B] {
+pub fn[A, B] bind(self : T[A], callback : (A) -> T[B]) -> T[B] {
   match self.state {
     Fulfilled(a) => callback(a)
     Rejected(err) => reject(err)
     Pending(handlers) => {
       let promise : Resolver[B] = make()
-      handlers.push(fn {
+      handlers.push(state => match state {
         Fulfilled(a) => {
           let future = callback(a)
           future.on_success(fn(b) { promise.resolve(b) }) |> ignore
@@ -143,20 +135,19 @@ pub fn bind[A, B](self : T[A], callback : (A) -> T[B]) -> T[B] {
 }
 
 ///|
-pub fn finally[A](self : T[A], callback : () -> Unit) -> T[A] {
+pub fn[A] finally(self : T[A], callback : () -> Unit) -> T[A] {
   match self.state {
     Fulfilled(_) | Rejected(_) => callback()
     Pending(handlers) =>
-      handlers.push(fn {
-        Fulfilled(_) | Rejected(_) => callback()
-        _ => ()
+      handlers.push(state => if state is (Fulfilled(_) | Rejected(_)) {
+        callback()
       })
   }
   self
 }
 
 ///|
-pub fn all[A](promises : Array[T[A]]) -> T[Array[A]] {
+pub fn[A] all(promises : Array[T[A]]) -> T[Array[A]] {
   let promise = make()
   let mut count = promises.length()
   let results = Array::make(count, None)
@@ -175,10 +166,10 @@ pub fn all[A](promises : Array[T[A]]) -> T[Array[A]] {
 }
 
 ///|
-pub type! AggregateError Array[Error]
+pub suberror AggregateError Array[Error]
 
 ///|
-pub fn any[A](promises : Array[T[A]]) -> T[A] {
+pub fn[A] any(promises : Array[T[A]]) -> T[A] {
   let promise = make()
   let mut count = promises.length()
   let errors = Array::make(count, None)
@@ -197,29 +188,29 @@ pub fn any[A](promises : Array[T[A]]) -> T[A] {
 }
 
 ///|
-pub fn zip[A, B](self : T[A], that : T[B]) -> T[(A, B)] {
+pub fn[A, B] zip(self : T[A], that : T[B]) -> T[(A, B)] {
   self.bind(fn(a) { that.bind(fn(b) { resolve((a, b)) }) })
 }
 
 ///|
-pub fn zip_with[A, B, C](self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
+pub fn[A, B, C] zip_with(self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
   self.bind(fn(a) { that.bind(fn(b) { resolve(f(a, b)) }) })
 }
 
 ///|
-async fn shift[A](f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A! = "%async.suspend"
+async fn[A] shift(f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A raise = "%async.suspend"
 
 ///|
-fn reset(f : () -> Unit!Async) -> Unit = "%async.run"
+fn reset(f : async () -> Unit) -> Unit = "%async.run"
 
 ///|
-pub async fn await[A](self : T[A]) -> A! {
-  shift!(fn(resolve : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
+pub async fn[A] await(self : T[A]) -> A raise {
+  shift(fn(resolve : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
     match self.state {
       Fulfilled(a) => resolve(a)
       Rejected(err) => reject(err)
       Pending(handlers) =>
-        handlers.push(fn {
+        handlers.push(state => match state {
           Fulfilled(a) => resolve(a)
           Rejected(err) => reject(err)
           _ => ()
@@ -229,21 +220,19 @@ pub async fn await[A](self : T[A]) -> A! {
 }
 
 ///|
-pub fn spawn[A](cb : ((() -> Unit) -> Unit) -> A!Error + Async) -> T[A] {
+pub fn[A] spawn(cb : async ((() -> Unit) -> Unit) -> A raise) -> T[A] {
   let promise = make()
-  let defer : Array[() -> Unit] = []
+  let defer_ : Array[() -> Unit] = []
   promise
   .future()
   .finally(fn() {
-    for func in defer.rev_iter() {
+    for func in defer_.rev_iter() {
       func()
     }
   })
   |> ignore
   reset(async fn() {
-    try {
-      cb!(fn(finally) { defer.push(finally) })
-    } catch {
+    try cb(fn(finally_) { defer_.push(finally_) }) catch {
       e => promise.reject(e)
     } else {
       result => promise.resolve(result)

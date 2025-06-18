@@ -21,7 +21,7 @@ struct T[A] {
 }
 
 ///|
-pub fn make[A](size~ : UInt = 1) -> T[A] {
+pub fn[A] make(size~ : UInt = 1) -> T[A] {
   {
     buffer: @queue.new(),
     capacity: size,
@@ -31,19 +31,19 @@ pub fn make[A](size~ : UInt = 1) -> T[A] {
 }
 
 ///|
-pub async fn push[A](self : T[A], value : A) -> Unit {
+pub async fn[A] push(self : T[A], value : A) -> Unit {
   if self.capacity > self.buffer.length().reinterpret_as_uint() {
     match self.consumers.pop() {
       Some(consumer) => consumer(value)
       None => self.buffer.push(value)
     }
   } else {
-    shift!(fn(k) { self.producers.push((value, k)) })
+    shift(fn(k) { self.producers.push((value, k)) })
   }
 }
 
 ///|
-pub async fn pop[A](self : T[A]) -> A {
+pub async fn[A] pop(self : T[A]) -> A {
   match self.buffer.pop() {
     Some(value) => {
       match self.producers.pop() {
@@ -55,9 +55,9 @@ pub async fn pop[A](self : T[A]) -> A {
       }
       value
     }
-    None => shift!(fn(k) { self.consumers.push(k) })
+    None => shift(fn(k) { self.consumers.push(k) })
   }
 }
 
 ///|
-async fn shift[A](f : ((A) -> Unit) -> Unit) -> A = "%async.suspend"
+async fn[A] shift(f : ((A) -> Unit) -> Unit) -> A = "%async.suspend"

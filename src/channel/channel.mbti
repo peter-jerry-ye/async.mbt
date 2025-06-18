@@ -1,18 +1,12 @@
 package "peter-jerry-ye/async/channel"
 
 // Values
-fn make[A](size~ : UInt = ..) -> T[A]
-
-fn pop[A](T[A]) -> A
-
-fn push[A](T[A], A) -> Unit
+fn[A] make(size~ : UInt = ..) -> T[A]
 
 // Types and methods
 type T[A]
-impl T {
-  pop[A](Self[A]) -> A
-  push[A](Self[A], A) -> Unit
-}
+async fn[A] T::pop(Self[A]) -> A
+async fn[A] T::push(Self[A], A) -> Unit
 
 // Type aliases
 

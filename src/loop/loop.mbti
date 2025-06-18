@@ -1,32 +1,20 @@
 package "peter-jerry-ye/async/loop"
 
 // Values
-fn new[A : Sync]() -> T[A]
-
-fn on_ready[A : Sync](T[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
-
-fn run[A : Sync](T[A]) -> Unit
-
-fn run_until[A : Sync](T[A], () -> Bool) -> Unit
-
-fn sync[A : Sync](T[A], A) -> Unit
+fn[A : Sync] new() -> T[A]
 
 // Types and methods
 type Handler
-impl Handler {
-  is_stopped(Self) -> Bool
-  make(action~ : (Self) -> Unit, stop_action~ : () -> Unit = ..) -> Self
-  start(Self) -> Unit
-  stop(Self) -> Unit
-}
+fn Handler::is_stopped(Self) -> Bool
+fn Handler::make(action~ : (Self) -> Unit, stop_action~ : () -> Unit = ..) -> Self
+fn Handler::start(Self) -> Unit
+fn Handler::stop(Self) -> Unit
 
 type T[A]
-impl T {
-  on_ready[A : Sync](Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
-  run[A : Sync](Self[A]) -> Unit
-  run_until[A : Sync](Self[A], () -> Bool) -> Unit
-  sync[A : Sync](Self[A], A) -> Unit
-}
+fn[A : Sync] T::on_ready(Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
+fn[A : Sync] T::run(Self[A]) -> Unit
+fn[A : Sync] T::run_until(Self[A], () -> Bool) -> Unit
+async fn[A : Sync] T::sync(Self[A], A) -> Unit
 
 // Type aliases
 

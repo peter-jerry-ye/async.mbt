@@ -42,7 +42,7 @@ pub impl Reader for StringReader with readable(self) {
 pub impl Reader for StringReader with read(self, ulen) {
   @promise.spawn(async fn(_defer) {
     if self.buffer is [] {
-      fail!("EOF")
+      fail("EOF")
     } else {
       let index = self.buffer.offset_of_nth_char(ulen.to_int())
       if index is Some(index) {
@@ -63,14 +63,13 @@ test "string reader" {
   @promise.spawn(async fn(_defer) {
     try {
       let reader = string_reader("asdf")
-      inspect!(reader.read(0).await!(), content="")
-      inspect!(reader.read(2).await!(), content="as")
-      inspect!(reader.read(10).await!(), content="df")
-      inspect!(
-        try {
-          reader.read(10).await!()
-        } catch! {
+      inspect(reader.read(0).await(), content="")
+      inspect(reader.read(2).await(), content="as")
+      inspect(reader.read(10).await(), content="df")
+      inspect(
+        reader.read(10).await() catch {
           Failure(_) => "fail"
+          e => raise e
         },
         content="fail",
       )
