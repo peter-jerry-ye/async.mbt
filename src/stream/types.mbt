@@ -14,7 +14,6 @@
 
 ///|
 pub(open) trait Closable {
-  closed(Self) -> Bool
   close(Self) -> Unit
 }
 
@@ -28,8 +27,9 @@ pub(open) trait Flushable {
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
 pub(open) trait InputStream: Closable {
-  readable(Self) -> Bool
-  read(Self, UInt64) -> @promise.T[Bytes]
+  read(Self, FixedArray[Byte], offset~ : Int, max_len~ : Int) -> @promise.T[
+    Int?,
+  ]
 }
 
 ///| 
@@ -37,8 +37,7 @@ pub(open) trait InputStream: Closable {
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
 pub(open) trait OutputStream: Closable + Flushable {
-  writable(Self) -> Bool
-  write(Self, Bytes) -> @promise.T[Unit]
+  write(Self, @bytes.View) -> @promise.T[Unit]
 }
 
 ///| 
@@ -46,8 +45,7 @@ pub(open) trait OutputStream: Closable + Flushable {
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
 pub(open) trait Reader: Closable {
-  readable(Self) -> Bool
-  read(Self, UInt64) -> @promise.T[String]
+  read(Self, StringBuilder, max_len~ : Int) -> @promise.T[Unit?]
 }
 
 ///| 
@@ -55,8 +53,7 @@ pub(open) trait Reader: Closable {
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
 pub(open) trait Writer: Closable + Flushable {
-  writable(Self) -> Bool
-  write(Self, String) -> @promise.T[Unit]
+  write(Self, @string.View) -> @promise.T[Unit]
 }
 
 ///|

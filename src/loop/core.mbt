@@ -90,7 +90,7 @@ pub async fn[A] sync(self : T[A], subscribe : A) -> Unit noraise {
 
 ///|
 pub fn[A : Sync] run_until(self : T[A], done : () -> Bool) -> Unit {
-  while not(done()) {
+  while !done() {
     iter(self)
   }
 }

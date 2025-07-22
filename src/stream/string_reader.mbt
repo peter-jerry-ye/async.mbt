@@ -24,35 +24,34 @@ pub fn string_reader(string : String) -> StringReader {
 }
 
 ///|
-pub impl Closable for StringReader with closed(self) {
-  self.closed
-}
-
-///|
 pub impl Closable for StringReader with close(self) {
   self.closed = true
 }
 
 ///|
-pub impl Reader for StringReader with readable(self) {
-  not(self.closed)
-}
-
-///|
-pub impl Reader for StringReader with read(self, ulen) {
-  @promise.spawn(async fn() raise {
+pub impl Reader for StringReader with read(self, builder, max_len~) {
+  @promise.spawn(fn() {
+    guard !self.closed else { fail("EOF") }
     if self.buffer is [] {
-      fail("EOF")
+      return None
     } else {
-      let index = self.buffer.offset_of_nth_char(ulen.to_int())
+      let index = self.buffer.offset_of_nth_char(max_len)
       if index is Some(index) {
-        let result = self.buffer.view(end_offset=index).to_string()
+        builder.write_substring(
+          self.buffer.data(),
+          self.buffer.start_offset(),
+          index,
+        )
         self.buffer = self.buffer.view(start_offset=index)
-        result
+        Some(())
       } else {
-        let result = self.buffer.to_string()
+        builder.write_substring(
+          self.buffer.data(),
+          self.buffer.start_offset(),
+          self.buffer.length(),
+        )
         self.buffer = "".view()
-        result
+        Some(())
       }
     }
   })
@@ -60,20 +59,22 @@ pub impl Reader for StringReader with read(self, ulen) {
 
 ///|
 test "string reader" {
-  @promise.spawn(async fn() noraise {
+  @promise.spawn(fn() {
     try {
       let reader = string_reader("asdf")
-      inspect(reader.read(0).await(), content="")
-      inspect(reader.read(2).await(), content="as")
-      inspect(reader.read(10).await(), content="df")
-      inspect(
-        reader.read(10).await() catch {
-          Failure(_) => "fail"
-          e => raise e
-        },
-        content="fail",
-      )
+      let builder = StringBuilder::new()
+      guard reader.read(builder, max_len=0).await() is Some(_)
+      inspect(builder, content="")
+      guard reader.read(builder, max_len=2).await() is Some(_)
+      inspect(builder, content="as")
+      guard reader.read(builder, max_len=10).await() is Some(_)
+      inspect(builder, content="asdf")
+      guard reader.read(builder, max_len=10).await() is None
     } catch {
+      InspectError(e) => {
+        println(e)
+        panic()
+      }
       e => {
         println(e)
         panic()

@@ -19,18 +19,8 @@ priv struct OutputStreamWriter[T] {
 }
 
 ///|
-impl[T : Closable] Closable for OutputStreamWriter[T] with closed(self) {
-  self.stream.closed()
-}
-
-///|
 impl[T : Closable] Closable for OutputStreamWriter[T] with close(self) {
   self.stream.close()
-}
-
-///|
-impl[T : OutputStream] Writer for OutputStreamWriter[T] with writable(self) {
-  self.stream.writable()
 }
 
 ///|

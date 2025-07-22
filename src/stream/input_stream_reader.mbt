@@ -15,12 +15,8 @@
 ///|
 priv struct InputStreamReader[T] {
   stream : T
+  buffer : FixedArray[Byte]
   decoder : @encoding.Decoder
-}
-
-///|
-impl[T : Closable] Closable for InputStreamReader[T] with closed(self) {
-  self.stream.closed()
 }
 
 ///|
@@ -29,15 +25,26 @@ impl[T : Closable] Closable for InputStreamReader[T] with close(self) {
 }
 
 ///|
-impl[T : InputStream] Reader for InputStreamReader[T] with readable(self) {
-  self.stream.readable()
-}
-
-///|
-impl[T : InputStream] Reader for InputStreamReader[T] with read(self, size) {
+impl[T : InputStream] Reader for InputStreamReader[T] with read(
+  self,
+  builder,
+  max_len~,
+) {
   @promise.spawn(async fn() raise {
-    let bytes = self.stream.read(size).await()
-    self.decoder.decode(bytes, stream=not(self.stream.closed()))
+    let bytes = self.stream
+      .read(self.buffer, offset=0, max_len=max_len * 2)
+      .await()
+    guard bytes is Some(read_len) else {
+      return if self.decoder.decode("", stream=false) is output && output != "" {
+        builder.write_string(output)
+        Some(())
+      } else {
+        None
+      }
+    }
+    let input = self.buffer.unsafe_reinterpret_as_bytes()[:read_len]
+    builder.write_string(self.decoder.decode(input, stream=true))
+    Some(())
   })
 }
 
@@ -45,7 +52,13 @@ impl[T : InputStream] Reader for InputStreamReader[T] with read(self, size) {
 pub fn[T : InputStream] input_stream_reader(
   stream : T,
   encoding~ : @encoding.Encoding = UTF8,
+  buffer_size~ : Int = 4096,
 ) -> &Reader {
-  ({ stream, decoder: @encoding.decoder(encoding) } : InputStreamReader[T])
+  (
+    {
+      stream,
+      buffer: FixedArray::make(buffer_size, b'\x00'),
+      decoder: @encoding.decoder(encoding),
+    } : InputStreamReader[T])
   as &Reader
 }

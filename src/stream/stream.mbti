@@ -2,6 +2,7 @@
 package "peter-jerry-ye/async/stream"
 
 import(
+  "moonbitlang/core/bytes"
   "moonbitlang/core/string"
   "peter-jerry-ye/async/promise"
   "tonyfettes/encoding"
@@ -10,7 +11,7 @@ import(
 // Values
 fn buffered_reader(&Reader) -> BufferedReader
 
-fn[T : InputStream] input_stream_reader(T, encoding~ : @encoding.Encoding = ..) -> &Reader
+fn[T : InputStream] input_stream_reader(T, encoding~ : @encoding.Encoding = .., buffer_size~ : Int = ..) -> &Reader
 
 fn[T : OutputStream] output_stream_writer(T, encoding~ : @encoding.Encoding = ..) -> &Writer
 
@@ -20,14 +21,9 @@ fn string_reader(String) -> StringReader
 pub(all) type AsyncIterable[T] async () -> T raise
 fn[T] AsyncIterable::inner(Self[T]) -> async () -> T raise
 
-pub struct BufferedReader {
-  stream : &Reader
-  mut buffer : String
-  mut offset : UInt
-  mut len : UInt
-  mut error : Error?
-}
-fn BufferedReader::read_line(Self) -> @promise.T[String]
+type BufferedReader
+fn BufferedReader::next_line(Self) -> @promise.T[String?]
+fn BufferedReader::read_line(Self, StringBuilder) -> @promise.T[Unit?]
 impl Closable for BufferedReader
 impl Reader for BufferedReader
 
@@ -42,7 +38,6 @@ impl Reader for StringReader
 
 // Traits
 pub(open) trait Closable {
-  closed(Self) -> Bool
   close(Self) -> Unit
 }
 
@@ -51,22 +46,18 @@ pub(open) trait Flushable {
 }
 
 pub(open) trait InputStream : Closable {
-  readable(Self) -> Bool
-  read(Self, UInt64) -> @promise.T[Bytes]
+  read(Self, FixedArray[Byte], offset~ : Int, max_len~ : Int) -> @promise.T[Int?]
 }
 
 pub(open) trait OutputStream : Closable + Flushable {
-  writable(Self) -> Bool
-  write(Self, Bytes) -> @promise.T[Unit]
+  write(Self, @bytes.View) -> @promise.T[Unit]
 }
 
 pub(open) trait Reader : Closable {
-  readable(Self) -> Bool
-  read(Self, UInt64) -> @promise.T[String]
+  read(Self, StringBuilder, max_len~ : Int) -> @promise.T[Unit?]
 }
 
 pub(open) trait Writer : Closable + Flushable {
-  writable(Self) -> Bool
-  write(Self, String) -> @promise.T[Unit]
+  write(Self, @string.StringView) -> @promise.T[Unit]
 }
 

@@ -13,189 +13,147 @@
 // limitations under the License.
 
 ///| A reader that buffers the input stream and provides line reading capabilities.
-pub struct BufferedReader {
+struct BufferedReader {
   stream : &Reader
-  mut buffer : String
-  mut offset : UInt
-  mut len : UInt
+  mut buffer : @string.View
   mut error : Error?
 }
 
 ///| Create a buffered reader from a reader
 pub fn buffered_reader(stream : &Reader) -> BufferedReader {
-  { stream, buffer: "", offset: 0, len: 0, error: None }
-}
-
-///|
-pub impl Closable for BufferedReader with closed(self) {
-  self.stream.closed() && self.len == 0
+  { stream, buffer: "", error: None }
 }
 
 ///|
 pub impl Closable for BufferedReader with close(self) {
   self.stream.close()
   self.buffer = ""
-  self.offset = 0
-  self.len = 0
 }
 
 ///|
-pub impl Reader for BufferedReader with readable(self) {
-  self.stream.readable() || self.len > 0
-}
-
-///|
-pub impl Reader for BufferedReader with read(self, size) {
-  @promise.spawn(async fn() raise {
+pub impl Reader for BufferedReader with read(self, builder, max_len~) {
+  @promise.spawn(fn() {
     // if there were error not thrown, throw it
     if self.error is Some(error) {
       self.error = None
       raise error
     }
-    if self.closed() {
-      fail("Closed")
-    }
-    // Only handles requests within uint
-    let size = size.to_uint()
-    let builder = StringBuilder::new()
-    if self.len > size {
+    if self.buffer.length() > max_len {
       builder.write_substring(
-        self.buffer,
-        self.offset.reinterpret_as_int(),
-        size.reinterpret_as_int(),
+        self.buffer.data(),
+        self.buffer.start_offset(),
+        self.buffer.length(),
       )
-      self.offset += size
-      self.len -= size
-    } else if self.len > 0 {
+      self.buffer = self.buffer.view(start_offset=max_len)
+      return Some(())
+    } else if self.buffer.length() > 0 {
       builder.write_substring(
-        self.buffer,
-        self.offset.reinterpret_as_int(),
-        self.len.reinterpret_as_int(),
+        self.buffer.data(),
+        self.buffer.start_offset(),
+        self.buffer.length(),
       )
-      self.buffer = ""
-      self.offset = 0
-      self.len = 0
+      self.buffer = "".view()
+      return Some(())
+    } else {
+      self.stream.read(builder, max_len~).await()
     }
-    if self.stream.readable() {
-      builder.write_string(
-        self.stream.read((size - self.len).to_uint64()).await(),
-      ) catch {
-        e => if builder.is_empty() { raise e } else { self.error = Some(e) }
-      }
-    }
-    builder.to_string()
   })
 }
 
 ///|
-pub fn BufferedReader::read_line(self : BufferedReader) -> @promise.T[String] {
+pub fn BufferedReader::next_line(self : BufferedReader) -> @promise.T[String?] {
+  @promise.spawn(async fn() raise {
+    let builder = StringBuilder::new()
+    self.read_line(builder).await().map(_ => builder.to_string())
+  })
+}
+
+///|
+pub fn BufferedReader::read_line(
+  self : BufferedReader,
+  builder : StringBuilder,
+) -> @promise.T[Unit?] {
   @promise.spawn(async fn() raise {
     if self.error is Some(e) {
       self.error = None
       raise e
     }
-    let result = StringBuilder::new()
-    if split_line(self.buffer, self.offset) is Some((line, rest)) {
+    if split_line(self.buffer) is Some((line, rest)) {
+      builder.write_substring(line.data(), line.start_offset(), line.length())
       self.buffer = rest
-      self.offset = 0
-      self.len = rest.length().reinterpret_as_uint()
-      return line
-    } else {
-      result.write_substring(
-        self.buffer,
-        self.offset.reinterpret_as_int(),
-        self.len.reinterpret_as_int(),
-      )
+      return Some(())
     }
-    while self.readable() {
-      let next_str = self.stream.read(1024).await() catch {
-        e =>
-          if result.is_empty() {
-            raise e
-          } else {
-            self.error = Some(e)
-            break
-          }
-      }
-      if split_line(next_str, 0) is Some((line, rest)) {
-        result.write_string(line)
+    let mut length = self.buffer.length()
+    builder.write_substring(
+      self.buffer.data(),
+      self.buffer.start_offset(),
+      self.buffer.length(),
+    )
+    let buffer = StringBuilder::new()
+    while self.stream.read(buffer, max_len=1024).await() is Some(_) {
+      let str = buffer.to_string()
+      if split_line(str.view()) is Some((line, rest)) {
+        builder.write_substring(line.data(), line.start_offset(), line.length())
         self.buffer = rest
-        self.offset = 0
-        self.len = rest.length().reinterpret_as_uint()
-        return result.to_string()
+        length += line.length()
+        break
       } else {
-        result.write_string(next_str)
+        length += str.length()
+        builder.write_string(str)
+        buffer.reset()
       }
     }
-    result.to_string()
+    if length > 0 {
+      Some(())
+    } else {
+      None
+    }
   })
 }
 
 ///|
-fn split_line(str : String, start_offset : UInt) -> (String, String)? {
-  let mut index = start_offset.reinterpret_as_int()
-  for ch in str.view(start_offset=start_offset.reinterpret_as_int()) {
-    if ch == '\n' {
-      let line = str.substring(
-        start=start_offset.reinterpret_as_int(),
-        end=index,
+fn split_line(str : @string.View) -> (@string.View, @string.View)? {
+  let input = str
+  loop str {
+    ['\n', .. rest] => {
+      let before = input.view(
+        end_offset=rest.start_offset() - input.start_offset() - 1,
       )
-      let rest = str.substring(start=index + 1)
-      break Some((line, rest))
-    } else if ch == '\r' {
-      // Check if the next character is '\n'
-      let next_index = index + 1
-      if next_index < str.length() && str.char_at(next_index) == '\n' {
-        let line = str.substring(
-          start=start_offset.reinterpret_as_int(),
-          end=index,
-        )
-        let rest = str.substring(start=index + 2)
-        break Some((line, rest))
+      if before is [.. before, '\r'] {
+        return Some((before, rest))
       } else {
-        let line = str.substring(
-          start=start_offset.reinterpret_as_int(),
-          end=index,
-        )
-        let rest = str.substring(start=index + 1)
-        break Some((line, rest))
+        return Some((before, rest))
       }
     }
-    // Handle surrogate pairs
-    if ch.to_int() < 0x10000 {
-      index += 1
-    } else {
-      index += 2
-    }
-  } else {
-    None
+    [_, .. rest] => continue rest
+    [] => return None
   }
 }
 
 ///|
 test "split line" {
   let str = "Hello, world!\nThis is a test.\r\nAnother line."
-  let (line, rest) = split_line(str, 0).unwrap()
+  let (line, rest) = split_line(str[:]).unwrap()
   inspect(line, content="Hello, world!")
   inspect(rest, content="This is a test.\r\nAnother line.")
-  let (line, rest) = split_line(str, 14).unwrap()
+  let (line, rest) = split_line(str[14:]).unwrap()
   inspect(line, content="This is a test.")
   inspect(rest, content="Another line.")
-  let (line, rest) = split_line(str, 30).unwrap()
+  let (line, rest) = split_line(str[30:]).unwrap()
   inspect(line, content="")
   inspect(rest, content="Another line.")
-  inspect(split_line(str, 31), content="None")
+  inspect(split_line(str[31:]), content="None")
 }
 
 ///|
-test "read line" {
+test "next line" {
   @promise.spawn(async fn() noraise {
     try {
       let str = "Hello, world!\nThis is a test.\r\nAnother line."
       let reader = buffered_reader(string_reader(str))
-      inspect(reader.read_line().await(), content="Hello, world!")
-      inspect(reader.read_line().await(), content="This is a test.")
-      inspect(reader.read_line().await(), content="Another line.")
+      inspect(reader.next_line().await().unwrap(), content="Hello, world!")
+      inspect(reader.next_line().await().unwrap(), content="This is a test.")
+      inspect(reader.next_line().await().unwrap(), content="Another line.")
     } catch {
       e => {
         println(e)
