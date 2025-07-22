@@ -1,7 +1,8 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "peter-jerry-ye/async/loop"
 
 // Values
-fn[A : Sync] new() -> T[A]
+fn[A] new() -> T[A]
 
 // Types and methods
 type Handler
@@ -11,10 +12,10 @@ fn Handler::start(Self) -> Unit
 fn Handler::stop(Self) -> Unit
 
 type T[A]
-fn[A : Sync] T::on_ready(Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
+fn[A] T::on_ready(Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
 fn[A : Sync] T::run(Self[A]) -> Unit
 fn[A : Sync] T::run_until(Self[A], () -> Bool) -> Unit
-async fn[A : Sync] T::sync(Self[A], A) -> Unit
+async fn[A] T::sync(Self[A], A) -> Unit
 
 // Type aliases
 

@@ -1,3 +1,4 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "peter-jerry-ye/async/promise"
 
 // Values
@@ -11,7 +12,7 @@ fn[A] reject(Error) -> T[A]
 
 fn[A] resolve(A) -> T[A]
 
-fn[A] spawn(((() -> Unit) -> Unit) -> A raise) -> T[A]
+fn[A] spawn(async ((() -> Unit) -> Unit) -> A raise) -> T[A]
 
 // Types and methods
 pub suberror AggregateError Array[Error]

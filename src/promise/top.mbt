@@ -59,7 +59,7 @@ pub fn[A] try_complete(self : Resolver[A], result : () -> A raise) -> Bool {
   guard self.state is Pending(_) else { false }
   try result() catch {
     err => self.fullfill_or_reject(Rejected(err))
-  } else {
+  } noraise {
     result => self.fullfill_or_reject(Fulfilled(result))
   }
   true
@@ -201,7 +201,7 @@ pub fn[A, B, C] zip_with(self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
 async fn[A] shift(f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A raise = "%async.suspend"
 
 ///|
-fn reset(f : async () -> Unit) -> Unit = "%async.run"
+fn reset(f : async () -> Unit noraise) -> Unit = "%async.run"
 
 ///|
 pub async fn[A] await(self : T[A]) -> A raise {
@@ -231,10 +231,10 @@ pub fn[A] spawn(cb : async ((() -> Unit) -> Unit) -> A raise) -> T[A] {
     }
   })
   |> ignore
-  reset(async fn() {
+  reset(async fn() noraise {
     try cb(fn(finally_) { defer_.push(finally_) }) catch {
       e => promise.reject(e)
-    } else {
+    } noraise {
       result => promise.resolve(result)
     }
   })

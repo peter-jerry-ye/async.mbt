@@ -35,7 +35,7 @@ impl[T : InputStream] Reader for InputStreamReader[T] with readable(self) {
 
 ///|
 impl[T : InputStream] Reader for InputStreamReader[T] with read(self, size) {
-  @promise.spawn(async fn(_defer) {
+  @promise.spawn(async fn(_defer) raise {
     let bytes = self.stream.read(size).await()
     self.decoder.decode(bytes, stream=not(self.stream.closed()))
   })
@@ -44,7 +44,7 @@ impl[T : InputStream] Reader for InputStreamReader[T] with read(self, size) {
 ///| Create a reader from an input stream through the given encoding.
 pub fn[T : InputStream] input_stream_reader(
   stream : T,
-  encoding~ : @encoding.Encoding = UTF8
+  encoding~ : @encoding.Encoding = UTF8,
 ) -> &Reader {
   ({ stream, decoder: @encoding.decoder(encoding) } : InputStreamReader[T])
   as &Reader

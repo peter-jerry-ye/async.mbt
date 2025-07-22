@@ -40,7 +40,7 @@ pub impl Reader for StringReader with readable(self) {
 
 ///|
 pub impl Reader for StringReader with read(self, ulen) {
-  @promise.spawn(async fn(_defer) {
+  @promise.spawn(async fn(_defer) raise {
     if self.buffer is [] {
       fail("EOF")
     } else {
@@ -60,7 +60,7 @@ pub impl Reader for StringReader with read(self, ulen) {
 
 ///|
 test "string reader" {
-  @promise.spawn(async fn(_defer) {
+  @promise.spawn(async fn(_defer) noraise {
     try {
       let reader = string_reader("asdf")
       inspect(reader.read(0).await(), content="")

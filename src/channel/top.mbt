@@ -31,7 +31,7 @@ pub fn[A] make(size~ : UInt = 1) -> T[A] {
 }
 
 ///|
-pub async fn[A] push(self : T[A], value : A) -> Unit {
+pub async fn[A] push(self : T[A], value : A) -> Unit noraise {
   if self.capacity > self.buffer.length().reinterpret_as_uint() {
     match self.consumers.pop() {
       Some(consumer) => consumer(value)
@@ -43,7 +43,7 @@ pub async fn[A] push(self : T[A], value : A) -> Unit {
 }
 
 ///|
-pub async fn[A] pop(self : T[A]) -> A {
+pub async fn[A] pop(self : T[A]) -> A noraise {
   match self.buffer.pop() {
     Some(value) => {
       match self.producers.pop() {
@@ -60,4 +60,4 @@ pub async fn[A] pop(self : T[A]) -> A {
 }
 
 ///|
-async fn[A] shift(f : ((A) -> Unit) -> Unit) -> A = "%async.suspend"
+async fn[A] shift(f : ((A) -> Unit) -> Unit) -> A noraise = "%async.suspend"

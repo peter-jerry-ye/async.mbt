@@ -13,16 +13,16 @@
 // limitations under the License.
 
 ///|
-pub fn[A : Sync] new() -> T[A] {
+pub fn[A] new() -> T[A] {
   { handlers: Map::new() }
 }
 
 ///|
-fn[A : Sync] add_handler(
+fn[A] add_handler(
   self : T[A],
   id : UInt64,
   subscribe : A,
-  action : Handler
+  action : Handler,
 ) -> Unit {
   self.handlers[id] = (subscribe, action)
 }
@@ -48,7 +48,7 @@ fn[A : Sync] iter(engine : T[A]) -> Unit {
 ///|
 fn make_io_handler(
   stop_action~ : () -> Unit,
-  action~ : (Handler) -> Unit
+  action~ : (Handler) -> Unit,
 ) -> Handler {
   Handler::make(stop_action~, action~)
 }
@@ -57,11 +57,11 @@ fn make_io_handler(
 let counter : Ref[UInt64] = { val: 0UL }
 
 ///|
-pub fn[A : Sync] on_ready(
+pub fn[A] on_ready(
   self : T[A],
   subscribe : A,
   action : (Handler) -> Unit,
-  stop_action~ : () -> Unit = fn() {  }
+  stop_action~ : () -> Unit = fn() {  },
 ) -> Unit {
   counter.val += 1
   let id = counter.val
@@ -79,7 +79,7 @@ pub fn[A : Sync] on_ready(
 }
 
 ///|
-pub async fn[A : Sync] sync(self : T[A], subscribe : A) -> Unit {
+pub async fn[A] sync(self : T[A], subscribe : A) -> Unit noraise {
   shift(fn(resume_) {
     self.on_ready(subscribe, fn(handler) {
       handler.stop()
