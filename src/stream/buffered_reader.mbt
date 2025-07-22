@@ -46,7 +46,7 @@ pub impl Reader for BufferedReader with readable(self) {
 
 ///|
 pub impl Reader for BufferedReader with read(self, size) {
-  @promise.spawn(async fn(_defer) raise {
+  @promise.spawn(async fn() raise {
     // if there were error not thrown, throw it
     if self.error is Some(error) {
       self.error = None
@@ -89,7 +89,7 @@ pub impl Reader for BufferedReader with read(self, size) {
 
 ///|
 pub fn BufferedReader::read_line(self : BufferedReader) -> @promise.T[String] {
-  @promise.spawn(async fn(_defer) raise {
+  @promise.spawn(async fn() raise {
     if self.error is Some(e) {
       self.error = None
       raise e
@@ -189,7 +189,7 @@ test "split line" {
 
 ///|
 test "read line" {
-  @promise.spawn(async fn(_defer) noraise {
+  @promise.spawn(async fn() noraise {
     try {
       let str = "Hello, world!\nThis is a test.\r\nAnother line."
       let reader = buffered_reader(string_reader(str))

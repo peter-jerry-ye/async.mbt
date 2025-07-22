@@ -220,19 +220,10 @@ pub async fn[A] await(self : T[A]) -> A raise {
 }
 
 ///|
-pub fn[A] spawn(cb : async ((() -> Unit) -> Unit) -> A raise) -> T[A] {
+pub fn[A] spawn(cb : async () -> A raise) -> T[A] {
   let promise = make()
-  let defer_ : Array[() -> Unit] = []
-  promise
-  .future()
-  .finally(fn() {
-    for func in defer_.rev_iter() {
-      func()
-    }
-  })
-  |> ignore
   reset(async fn() noraise {
-    try cb(fn(finally_) { defer_.push(finally_) }) catch {
+    try cb() catch {
       e => promise.reject(e)
     } noraise {
       result => promise.resolve(result)

@@ -35,7 +35,7 @@ impl[T : InputStream] Reader for InputStreamReader[T] with readable(self) {
 
 ///|
 impl[T : InputStream] Reader for InputStreamReader[T] with read(self, size) {
-  @promise.spawn(async fn(_defer) raise {
+  @promise.spawn(async fn() raise {
     let bytes = self.stream.read(size).await()
     self.decoder.decode(bytes, stream=not(self.stream.closed()))
   })
