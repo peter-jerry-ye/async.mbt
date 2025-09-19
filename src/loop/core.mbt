@@ -61,7 +61,7 @@ pub fn[A] on_ready(
   self : T[A],
   subscribe : A,
   action : (Handler) -> Unit,
-  stop_action~ : () -> Unit = fn() {  },
+  stop_action? : () -> Unit = fn() {  },
 ) -> Unit {
   counter.val += 1
   let id = counter.val

@@ -15,7 +15,7 @@
 ///|
 pub fn Handler::make(
   action~ : (Handler) -> Unit,
-  stop_action~ : () -> Unit = fn() {  },
+  stop_action? : () -> Unit = fn() {  },
 ) -> Handler {
   Handler::{ stopped: false, stop_action, action }
 }

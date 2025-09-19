@@ -4,18 +4,20 @@ package "peter-jerry-ye/async/loop"
 // Values
 fn[A] new() -> T[A]
 
+// Errors
+
 // Types and methods
 type Handler
 fn Handler::is_stopped(Self) -> Bool
-fn Handler::make(action~ : (Self) -> Unit, stop_action~ : () -> Unit = ..) -> Self
+fn Handler::make(action~ : (Self) -> Unit, stop_action? : () -> Unit) -> Self
 fn Handler::start(Self) -> Unit
 fn Handler::stop(Self) -> Unit
 
 type T[A]
-fn[A] T::on_ready(Self[A], A, (Handler) -> Unit, stop_action~ : () -> Unit = ..) -> Unit
+fn[A] T::on_ready(Self[A], A, (Handler) -> Unit, stop_action? : () -> Unit) -> Unit
 fn[A : Sync] T::run(Self[A]) -> Unit
 fn[A : Sync] T::run_until(Self[A], () -> Bool) -> Unit
-async fn[A] T::sync(Self[A], A) -> Unit
+async fn[A] T::sync(Self[A], A) -> Unit noraise
 
 // Type aliases
 

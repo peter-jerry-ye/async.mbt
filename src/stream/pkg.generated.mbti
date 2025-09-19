@@ -2,8 +2,6 @@
 package "peter-jerry-ye/async/stream"
 
 import(
-  "moonbitlang/core/bytes"
-  "moonbitlang/core/string"
   "peter-jerry-ye/async/promise"
   "tonyfettes/encoding"
 )
@@ -11,15 +9,18 @@ import(
 // Values
 fn buffered_reader(&Reader) -> BufferedReader
 
-fn[T : InputStream] input_stream_reader(T, encoding~ : @encoding.Encoding = .., buffer_size~ : Int = ..) -> &Reader
+fn[T : InputStream] input_stream_reader(T, encoding? : @encoding.Encoding, buffer_size? : Int) -> &Reader
 
-fn[T : OutputStream] output_stream_writer(T, encoding~ : @encoding.Encoding = ..) -> &Writer
+fn[T : OutputStream] output_stream_writer(T, encoding? : @encoding.Encoding) -> &Writer
 
 fn string_reader(String) -> StringReader
 
+// Errors
+
 // Types and methods
-pub(all) type AsyncIterable[T] async () -> T raise
-fn[T] AsyncIterable::inner(Self[T]) -> async () -> T raise
+pub(all) struct AsyncIterable[T](async () -> T)
+#deprecated
+fn[T] AsyncIterable::inner(Self[T]) -> async () -> T
 
 type BufferedReader
 fn BufferedReader::next_line(Self) -> @promise.T[String?]
@@ -27,10 +28,7 @@ fn BufferedReader::read_line(Self, StringBuilder) -> @promise.T[Unit?]
 impl Closable for BufferedReader
 impl Reader for BufferedReader
 
-pub struct StringReader {
-  mut closed : Bool
-  mut buffer : @string.StringView
-}
+type StringReader
 impl Closable for StringReader
 impl Reader for StringReader
 
@@ -50,7 +48,7 @@ pub(open) trait InputStream : Closable {
 }
 
 pub(open) trait OutputStream : Closable + Flushable {
-  write(Self, @bytes.View) -> @promise.T[Unit]
+  write(Self, BytesView) -> @promise.T[Unit]
 }
 
 pub(open) trait Reader : Closable {
@@ -58,6 +56,6 @@ pub(open) trait Reader : Closable {
 }
 
 pub(open) trait Writer : Closable + Flushable {
-  write(Self, @string.StringView) -> @promise.T[Unit]
+  write(Self, StringView) -> @promise.T[Unit]
 }
 

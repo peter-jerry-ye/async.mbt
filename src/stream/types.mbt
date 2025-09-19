@@ -22,7 +22,7 @@ pub(open) trait Flushable {
   flush(Self) -> @promise.T[Unit]
 }
 
-///| 
+///|
 /// This trait represents an interface that provides the ability for low level async read operations.
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
@@ -32,7 +32,7 @@ pub(open) trait InputStream: Closable {
   ]
 }
 
-///| 
+///|
 /// This trait represents an interface that provides the ability for low level async write operations.
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
@@ -40,7 +40,7 @@ pub(open) trait OutputStream: Closable + Flushable {
   write(Self, @bytes.View) -> @promise.T[Unit]
 }
 
-///| 
+///|
 /// This trait represents an interface that provides the ability for async read operations based on Chars.
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
@@ -48,7 +48,7 @@ pub(open) trait Reader: Closable {
   read(Self, StringBuilder, max_len~ : Int) -> @promise.T[Unit?]
 }
 
-///| 
+///|
 /// This trait represents an interface that provides the ability for async write operations based on Chars.
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
@@ -57,4 +57,4 @@ pub(open) trait Writer: Closable + Flushable {
 }
 
 ///|
-pub(all) type AsyncIterable[T] async () -> T raise
+pub(all) struct AsyncIterable[T](async () -> T)

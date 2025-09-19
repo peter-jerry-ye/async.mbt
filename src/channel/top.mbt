@@ -13,15 +13,15 @@
 // limitations under the License.
 
 ///|
-struct T[A] {
-  buffer : @queue.T[A]
+struct Channel[A] {
+  buffer : @queue.Queue[A]
   capacity : UInt
-  producers : @queue.T[(A, (Unit) -> Unit)]
-  consumers : @queue.T[(A) -> Unit]
+  producers : @queue.Queue[(A, (Unit) -> Unit)]
+  consumers : @queue.Queue[(A) -> Unit]
 }
 
 ///|
-pub fn[A] make(size~ : UInt = 1) -> T[A] {
+pub fn[A] make(size? : UInt = 1) -> Channel[A] {
   {
     buffer: @queue.new(),
     capacity: size,
@@ -31,7 +31,7 @@ pub fn[A] make(size~ : UInt = 1) -> T[A] {
 }
 
 ///|
-pub async fn[A] push(self : T[A], value : A) -> Unit noraise {
+pub async fn[A] push(self : Channel[A], value : A) -> Unit noraise {
   if self.capacity > self.buffer.length().reinterpret_as_uint() {
     match self.consumers.pop() {
       Some(consumer) => consumer(value)
@@ -43,7 +43,7 @@ pub async fn[A] push(self : T[A], value : A) -> Unit noraise {
 }
 
 ///|
-pub async fn[A] pop(self : T[A]) -> A noraise {
+pub async fn[A] pop(self : Channel[A]) -> A noraise {
   match self.buffer.pop() {
     Some(value) => {
       match self.producers.pop() {

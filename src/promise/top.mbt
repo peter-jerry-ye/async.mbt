@@ -20,7 +20,7 @@ priv enum State[A] {
 }
 
 ///|
-priv type Handler[A] (State[A]) -> Unit
+priv struct Handler[A]((State[A]) -> Unit)
 
 ///|
 struct T[A] {
@@ -28,7 +28,7 @@ struct T[A] {
 }
 
 ///|
-type Resolver[A] T[A]
+struct Resolver[A](T[A])
 
 ///|
 pub fn[A] make() -> Resolver[A] {
@@ -198,13 +198,13 @@ pub fn[A, B, C] zip_with(self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
 }
 
 ///|
-async fn[A] shift(f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A raise = "%async.suspend"
+async fn[A] shift(f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A = "%async.suspend"
 
 ///|
 fn reset(f : async () -> Unit noraise) -> Unit = "%async.run"
 
 ///|
-pub async fn[A] await(self : T[A]) -> A raise {
+pub async fn[A] await(self : T[A]) -> A {
   shift(fn(resolve : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
     match self.state {
       Fulfilled(a) => resolve(a)
@@ -220,7 +220,7 @@ pub async fn[A] await(self : T[A]) -> A raise {
 }
 
 ///|
-pub fn[A] spawn(cb : async () -> A raise) -> T[A] {
+pub fn[A] spawn(cb : async () -> A) -> T[A] {
   let promise = make()
   reset(async fn() noraise {
     try cb() catch {

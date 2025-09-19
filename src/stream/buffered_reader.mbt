@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-///| A reader that buffers the input stream and provides line reading capabilities.
+///|
+/// A reader that buffers the input stream and provides line reading capabilities.
 struct BufferedReader {
   stream : &Reader
   mut buffer : @string.View
   mut error : Error?
 }
 
-///| Create a buffered reader from a reader
+///|
+/// Create a buffered reader from a reader
 pub fn buffered_reader(stream : &Reader) -> BufferedReader {
   { stream, buffer: "", error: None }
 }
@@ -62,7 +64,7 @@ pub impl Reader for BufferedReader with read(self, builder, max_len~) {
 
 ///|
 pub fn BufferedReader::next_line(self : BufferedReader) -> @promise.T[String?] {
-  @promise.spawn(async fn() raise {
+  @promise.spawn(async fn() {
     let builder = StringBuilder::new()
     self.read_line(builder).await().map(_ => builder.to_string())
   })
@@ -73,7 +75,7 @@ pub fn BufferedReader::read_line(
   self : BufferedReader,
   builder : StringBuilder,
 ) -> @promise.T[Unit?] {
-  @promise.spawn(async fn() raise {
+  @promise.spawn(async fn() {
     if self.error is Some(e) {
       self.error = None
       raise e

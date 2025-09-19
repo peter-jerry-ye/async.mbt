@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "peter-jerry-ye/async/channel"
+
+// Values
+fn[A] make(size? : UInt) -> Channel[A]
+
+// Errors
+
+// Types and methods
+type Channel[A]
+async fn[A] Channel::pop(Self[A]) -> A noraise
+async fn[A] Channel::push(Self[A], A) -> Unit noraise
+
+// Type aliases
+
+// Traits
+

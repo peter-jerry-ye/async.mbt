@@ -12,11 +12,12 @@ fn[A] reject(Error) -> T[A]
 
 fn[A] resolve(A) -> T[A]
 
-fn[A] spawn(async () -> A raise) -> T[A]
+fn[A] spawn(async () -> A) -> T[A]
 
-// Types and methods
+// Errors
 pub suberror AggregateError Array[Error]
 
+// Types and methods
 type Resolver[A]
 fn[A] Resolver::future(Self[A]) -> T[A]
 fn[A] Resolver::reject(Self[A], Error) -> Unit
@@ -24,7 +25,7 @@ fn[A] Resolver::resolve(Self[A], A) -> Unit
 fn[A] Resolver::try_complete(Self[A], () -> A raise) -> Bool
 
 type T[A]
-async fn[A] T::await(Self[A]) -> A raise
+async fn[A] T::await(Self[A]) -> A
 fn[A, B] T::bind(Self[A], (A) -> Self[B]) -> Self[B]
 fn[A] T::finally(Self[A], () -> Unit) -> Self[A]
 fn[A] T::get(Self[A]) -> Result[A, Error]?

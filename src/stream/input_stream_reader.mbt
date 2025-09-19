@@ -30,7 +30,7 @@ impl[T : InputStream] Reader for InputStreamReader[T] with read(
   builder,
   max_len~,
 ) {
-  @promise.spawn(async fn() raise {
+  @promise.spawn(async fn() {
     let bytes = self.stream
       .read(self.buffer, offset=0, max_len=max_len * 2)
       .await()
@@ -48,11 +48,12 @@ impl[T : InputStream] Reader for InputStreamReader[T] with read(
   })
 }
 
-///| Create a reader from an input stream through the given encoding.
+///|
+/// Create a reader from an input stream through the given encoding.
 pub fn[T : InputStream] input_stream_reader(
   stream : T,
-  encoding~ : @encoding.Encoding = UTF8,
-  buffer_size~ : Int = 4096,
+  encoding? : @encoding.Encoding = UTF8,
+  buffer_size? : Int = 4096,
 ) -> &Reader {
   (
     {

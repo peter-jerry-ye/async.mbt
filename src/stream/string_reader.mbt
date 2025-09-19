@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-///| A reader based on a string
-pub struct StringReader {
+///|
+/// A reader based on a string
+struct StringReader {
   mut closed : Bool
   mut buffer : @string.View
 }
 
-///| Creates a new StringReader based on a string
+///|
+/// Creates a new StringReader based on a string
 pub fn string_reader(string : String) -> StringReader {
   { closed: false, buffer: string.view() }
 }
