@@ -44,7 +44,7 @@ pub(open) trait Flushable {
 }
 
 pub(open) trait InputStream : Closable {
-  read(Self, FixedArray[Byte], offset~ : Int, max_len~ : Int) -> @promise.T[Int?]
+  read(Self, FixedArray[Byte], offset? : Int, max_len? : Int) -> @promise.T[Int?]
 }
 
 pub(open) trait OutputStream : Closable + Flushable {
@@ -52,7 +52,7 @@ pub(open) trait OutputStream : Closable + Flushable {
 }
 
 pub(open) trait Reader : Closable {
-  read(Self, StringBuilder, max_len~ : Int) -> @promise.T[Unit?]
+  read(Self, StringBuilder, max_len? : Int) -> @promise.T[Unit?]
 }
 
 pub(open) trait Writer : Closable + Flushable {

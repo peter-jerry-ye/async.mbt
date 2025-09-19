@@ -31,30 +31,28 @@ pub impl Closable for StringReader with close(self) {
 }
 
 ///|
-pub impl Reader for StringReader with read(self, builder, max_len~) {
+pub impl Reader for StringReader with read(self, builder, max_len?) {
   @promise.spawn(fn() {
     guard !self.closed else { fail("EOF") }
     if self.buffer is [] {
       return None
+    } else if max_len is Some(max_len) &&
+      self.buffer.offset_of_nth_char(max_len) is Some(index) {
+      builder.write_substring(
+        self.buffer.data(),
+        self.buffer.start_offset(),
+        index,
+      )
+      self.buffer = self.buffer.view(start_offset=index)
+      Some(())
     } else {
-      let index = self.buffer.offset_of_nth_char(max_len)
-      if index is Some(index) {
-        builder.write_substring(
-          self.buffer.data(),
-          self.buffer.start_offset(),
-          index,
-        )
-        self.buffer = self.buffer.view(start_offset=index)
-        Some(())
-      } else {
-        builder.write_substring(
-          self.buffer.data(),
-          self.buffer.start_offset(),
-          self.buffer.length(),
-        )
-        self.buffer = "".view()
-        Some(())
-      }
+      builder.write_substring(
+        self.buffer.data(),
+        self.buffer.start_offset(),
+        self.buffer.length(),
+      )
+      self.buffer = "".view()
+      Some(())
     }
   })
 }

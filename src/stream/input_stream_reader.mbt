@@ -28,11 +28,11 @@ impl[T : Closable] Closable for InputStreamReader[T] with close(self) {
 impl[T : InputStream] Reader for InputStreamReader[T] with read(
   self,
   builder,
-  max_len~,
+  max_len?,
 ) {
   @promise.spawn(async fn() {
     let bytes = self.stream
-      .read(self.buffer, offset=0, max_len=max_len * 2)
+      .read(self.buffer, offset=0, max_len?=max_len.map(v => v * 2))
       .await()
     guard bytes is Some(read_len) else {
       return if self.decoder.decode("", stream=false) is output && output != "" {

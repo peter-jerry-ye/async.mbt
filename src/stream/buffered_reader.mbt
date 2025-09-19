@@ -33,20 +33,20 @@ pub impl Closable for BufferedReader with close(self) {
 }
 
 ///|
-pub impl Reader for BufferedReader with read(self, builder, max_len~) {
+pub impl Reader for BufferedReader with read(self, builder, max_len?) {
   @promise.spawn(fn() {
     // if there were error not thrown, throw it
     if self.error is Some(error) {
       self.error = None
       raise error
     }
-    if self.buffer.length() > max_len {
+    if max_len is Some(len) && self.buffer.length() > len {
       builder.write_substring(
         self.buffer.data(),
         self.buffer.start_offset(),
         self.buffer.length(),
       )
-      self.buffer = self.buffer.view(start_offset=max_len)
+      self.buffer = self.buffer.view(start_offset=len)
       return Some(())
     } else if self.buffer.length() > 0 {
       builder.write_substring(
@@ -57,7 +57,7 @@ pub impl Reader for BufferedReader with read(self, builder, max_len~) {
       self.buffer = "".view()
       return Some(())
     } else {
-      self.stream.read(builder, max_len~).await()
+      self.stream.read(builder, max_len?).await()
     }
   })
 }
