@@ -16,7 +16,7 @@
 /// A reader based on a string
 struct StringReader {
   mut closed : Bool
-  mut buffer : @string.View
+  mut buffer : StringView
 }
 
 ///|

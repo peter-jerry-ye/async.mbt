@@ -16,7 +16,7 @@
 /// A reader that buffers the input stream and provides line reading capabilities.
 struct BufferedReader {
   stream : &Reader
-  mut buffer : @string.View
+  mut buffer : StringView
   mut error : Error?
 }
 
@@ -114,7 +114,7 @@ pub fn BufferedReader::read_line(
 }
 
 ///|
-fn split_line(str : @string.View) -> (@string.View, @string.View)? {
+fn split_line(str : StringView) -> (StringView, StringView)? {
   let input = str
   loop str {
     ['\n', .. rest] => {

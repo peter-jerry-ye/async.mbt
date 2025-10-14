@@ -37,7 +37,7 @@ pub(open) trait InputStream: Closable {
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
 pub(open) trait OutputStream: Closable + Flushable {
-  write(Self, @bytes.View) -> @promise.T[Unit]
+  write(Self, BytesView) -> @promise.T[Unit]
 }
 
 ///|
@@ -53,7 +53,7 @@ pub(open) trait Reader: Closable {
 /// 
 /// The `Self` here may represent a stream / file descriptor, or a stream / file descriptor + event loop.
 pub(open) trait Writer: Closable + Flushable {
-  write(Self, @string.View) -> @promise.T[Unit]
+  write(Self, StringView) -> @promise.T[Unit]
 }
 
 ///|
