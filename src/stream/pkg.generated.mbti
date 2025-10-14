@@ -23,12 +23,16 @@ pub(all) struct AsyncIterable[T](async () -> T)
 fn[T] AsyncIterable::inner(Self[T]) -> async () -> T
 
 type BufferedReader
+fn BufferedReader::close(Self) -> Unit // from trait `Closable`
 fn BufferedReader::next_line(Self) -> @promise.T[String?]
+fn BufferedReader::read(Self, StringBuilder, max_len? : Int) -> @promise.T[Unit?] // from trait `Reader`
 fn BufferedReader::read_line(Self, StringBuilder) -> @promise.T[Unit?]
 impl Closable for BufferedReader
 impl Reader for BufferedReader
 
 type StringReader
+fn StringReader::close(Self) -> Unit // from trait `Closable`
+fn StringReader::read(Self, StringBuilder, max_len? : Int) -> @promise.T[Unit?] // from trait `Reader`
 impl Closable for StringReader
 impl Reader for StringReader
 
