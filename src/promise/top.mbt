@@ -46,7 +46,7 @@ pub fn[A] reject(err : Error) -> T[A] {
 }
 
 ///|
-pub fn[A] get(self : T[A]) -> Result[A, Error]? {
+pub fn[A] T::get(self : T[A]) -> Result[A, Error]? {
   match self.state {
     Fulfilled(result) => Some(Ok(result))
     Rejected(error) => Some(Err(error))
@@ -55,7 +55,10 @@ pub fn[A] get(self : T[A]) -> Result[A, Error]? {
 }
 
 ///|
-pub fn[A] try_complete(self : Resolver[A], result : () -> A raise) -> Bool {
+pub fn[A] Resolver::try_complete(
+  self : Resolver[A],
+  result : () -> A raise,
+) -> Bool {
   guard self.state is Pending(_) else { false }
   try result() catch {
     err => self.fullfill_or_reject(Rejected(err))
@@ -76,12 +79,15 @@ pub fn[A] Resolver::reject(self : Resolver[A], err : Error) -> Unit {
 }
 
 ///|
-fn[A] fullfill_or_reject(self : Resolver[A], state : State[A]) -> Unit {
+fn[A] Resolver::fullfill_or_reject(
+  self : Resolver[A],
+  state : State[A],
+) -> Unit {
   match self.state {
     Pending(handlers) => {
       self.state = state
       for handler in handlers {
-        handler.inner()(state)
+        handler(state)
       }
     }
     _ => ()
@@ -89,12 +95,12 @@ fn[A] fullfill_or_reject(self : Resolver[A], state : State[A]) -> Unit {
 }
 
 ///|
-pub fn[A] future(self : Resolver[A]) -> T[A] {
-  self.inner()
+pub fn[A] Resolver::future(self : Resolver[A]) -> T[A] {
+  self.0
 }
 
 ///|
-pub fn[A] on_success(self : T[A], callback : (A) -> Unit) -> Unit {
+pub fn[A] T::on_success(self : T[A], callback : (A) -> Unit) -> Unit {
   match self.state {
     Fulfilled(a) => callback(a)
     Rejected(_) => ()
@@ -104,7 +110,7 @@ pub fn[A] on_success(self : T[A], callback : (A) -> Unit) -> Unit {
 }
 
 ///|
-pub fn[A] on_failure(self : T[A], callback : (Error) -> Unit) -> Unit {
+pub fn[A] T::on_failure(self : T[A], callback : (Error) -> Unit) -> Unit {
   match self.state {
     Rejected(err) => callback(err)
     Fulfilled(_) => ()
@@ -114,7 +120,7 @@ pub fn[A] on_failure(self : T[A], callback : (Error) -> Unit) -> Unit {
 }
 
 ///|
-pub fn[A, B] bind(self : T[A], callback : (A) -> T[B]) -> T[B] {
+pub fn[A, B] T::bind(self : T[A], callback : (A) -> T[B]) -> T[B] {
   match self.state {
     Fulfilled(a) => callback(a)
     Rejected(err) => reject(err)
@@ -135,7 +141,7 @@ pub fn[A, B] bind(self : T[A], callback : (A) -> T[B]) -> T[B] {
 }
 
 ///|
-pub fn[A] finally(self : T[A], callback : () -> Unit) -> T[A] {
+pub fn[A] T::finally(self : T[A], callback : () -> Unit) -> T[A] {
   match self.state {
     Fulfilled(_) | Rejected(_) => callback()
     Pending(handlers) =>
@@ -188,12 +194,12 @@ pub fn[A] any(promises : Array[T[A]]) -> T[A] {
 }
 
 ///|
-pub fn[A, B] zip(self : T[A], that : T[B]) -> T[(A, B)] {
+pub fn[A, B] T::zip(self : T[A], that : T[B]) -> T[(A, B)] {
   self.bind(fn(a) { that.bind(fn(b) { resolve((a, b)) }) })
 }
 
 ///|
-pub fn[A, B, C] zip_with(self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
+pub fn[A, B, C] T::zip_with(self : T[A], that : T[B], f : (A, B) -> C) -> T[C] {
   self.bind(fn(a) { that.bind(fn(b) { resolve(f(a, b)) }) })
 }
 
@@ -204,7 +210,7 @@ async fn[A] shift(f : ((A) -> Unit, (Error) -> Unit) -> Unit) -> A = "%async.sus
 fn reset(f : async () -> Unit noraise) -> Unit = "%async.run"
 
 ///|
-pub async fn[A] await(self : T[A]) -> A {
+pub async fn[A] T::await(self : T[A]) -> A {
   shift(fn(resolve : (A) -> Unit, reject : (Error) -> Unit) -> Unit {
     match self.state {
       Fulfilled(a) => resolve(a)

@@ -18,7 +18,7 @@ pub fn[A] new() -> T[A] {
 }
 
 ///|
-fn[A] add_handler(
+fn[A] T::add_handler(
   self : T[A],
   id : UInt64,
   subscribe : A,
@@ -28,7 +28,7 @@ fn[A] add_handler(
 }
 
 ///|
-fn[A] remove_handler(self : T[A], id : UInt64) -> Unit {
+fn[A] T::remove_handler(self : T[A], id : UInt64) -> Unit {
   self.handlers.remove(id)
 }
 
@@ -57,7 +57,7 @@ fn make_io_handler(
 let counter : Ref[UInt64] = { val: 0UL }
 
 ///|
-pub fn[A] on_ready(
+pub fn[A] T::on_ready(
   self : T[A],
   subscribe : A,
   action : (Handler) -> Unit,
@@ -79,7 +79,7 @@ pub fn[A] on_ready(
 }
 
 ///|
-pub async fn[A] sync(self : T[A], subscribe : A) -> Unit noraise {
+pub async fn[A] T::sync(self : T[A], subscribe : A) -> Unit noraise {
   shift(fn(resume_) {
     self.on_ready(subscribe, fn(handler) {
       handler.stop()
@@ -89,13 +89,13 @@ pub async fn[A] sync(self : T[A], subscribe : A) -> Unit noraise {
 }
 
 ///|
-pub fn[A : Sync] run_until(self : T[A], done : () -> Bool) -> Unit {
+pub fn[A : Sync] T::run_until(self : T[A], done : () -> Bool) -> Unit {
   while !done() {
     iter(self)
   }
 }
 
 ///|
-pub fn[A : Sync] run(self : T[A]) -> Unit {
+pub fn[A : Sync] T::run(self : T[A]) -> Unit {
   self.run_until(fn() { self.handlers.is_empty() })
 }

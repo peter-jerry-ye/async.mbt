@@ -31,7 +31,7 @@ pub fn[A] make(size? : UInt = 1) -> Channel[A] {
 }
 
 ///|
-pub async fn[A] push(self : Channel[A], value : A) -> Unit noraise {
+pub async fn[A] Channel::push(self : Channel[A], value : A) -> Unit noraise {
   if self.capacity > self.buffer.length().reinterpret_as_uint() {
     match self.consumers.pop() {
       Some(consumer) => consumer(value)
@@ -43,7 +43,7 @@ pub async fn[A] push(self : Channel[A], value : A) -> Unit noraise {
 }
 
 ///|
-pub async fn[A] pop(self : Channel[A]) -> A noraise {
+pub async fn[A] Channel::pop(self : Channel[A]) -> A noraise {
   match self.buffer.pop() {
     Some(value) => {
       match self.producers.pop() {
